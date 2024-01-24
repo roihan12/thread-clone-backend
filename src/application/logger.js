@@ -1,10 +1,9 @@
 import winston from "winston";
-import { MongoDB } from "winston-mongodb"; 
+import { MongoDB } from "winston-mongodb";
 const { transports, format, createLogger } = winston;
 const { combine, printf } = format;
 import dotenv from "dotenv";
 dotenv.config();
-
 
 // Create a timeStamp
 const logTime = new Date().toLocaleDateString();
@@ -40,7 +39,7 @@ const options = {
   },
   console: {
     level: "debug",
-    json: false,
+    json: true,
     handleExceptions: true,
     colorize: true,
   },
@@ -56,5 +55,3 @@ export const logger = new createLogger({
   ],
   exitOnError: false,
 });
-
-
