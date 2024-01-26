@@ -67,10 +67,10 @@ const updateUser = async (req, res, next) => {
   try {
     const userId = req.user._id.toString();
     const request = req.body;
-
+    const user = req.user;
     request.userId = userId;
 
-    const result = await userService.update(request);
+    const result = await userService.update(user, request);
 
     res.status(200).json({
       status: "success",
@@ -84,9 +84,12 @@ const updateUser = async (req, res, next) => {
 
 const getUserProfile = async (req, res, next) => {
   try {
-    const { username } = req.params;
 
-    const result = await userService.getProfile(username);
+    // fecth user profile either with username or userid
+    
+    const { query } = req.params;
+
+    const result = await userService.getProfile(query);
 
     res.status(200).json({
       status: "success",

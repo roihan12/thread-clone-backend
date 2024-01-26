@@ -9,8 +9,14 @@ import { validate } from "../validation/validation.js";
 import { ResponseError } from "../error/responseError.js";
 import User from "../model/userModel.js";
 import Post from "../model/postModel.js";
+import { v2 as cloudinary } from "cloudinary";
 
 const create = async (user, request) => {
+  if (request.img) {
+    const uploadedResponse = await cloudinary.uploader.upload(request.img);
+    request.img = uploadedResponse.secure_url;
+  }
+
   const post = validate(createPostValidation, request);
 
   const currentUser = await User.findById(user._id);
@@ -68,6 +74,11 @@ const remove = async (user, postId) => {
     throw new ResponseError(401, "error", "Unauthorized to delete post");
   }
 
+  if (post.img) {
+    const imgId = post.img.split("/").pop().split(".")[0];
+    await cloudinary.uploader.destroy(imgId);
+  }
+
   await Post.findByIdAndDelete(postId);
 };
 
@@ -117,7 +128,7 @@ const reply = async (user, postId, text) => {
 
   await post.save();
 
-  return post;
+  return reply;
 };
 
 const getFeed = async (user, request) => {
@@ -143,7 +154,7 @@ const getFeed = async (user, request) => {
   const totalItem = await Post.countDocuments({ postedBy: { $in: following } });
 
   return {
-    data: feedPosts,
+    feedPosts,
     paging: {
       page: request.page,
       total_item: totalItem,
@@ -152,4 +163,24 @@ const getFeed = async (user, request) => {
   };
 };
 
-export default { create, get, remove, likeUnlike, reply, getFeed };
+const getUserPosts = async (username) => {
+  username = validate(getPostValidation, username);
+
+  const user = await User.findOne({ username });
+  if (!user) {
+    throw new ResponseError(404, "error", "User is not found");
+  }
+
+  const posts = await Post.find({ postedBy: user._id }).sort({ createdAt: -1 });
+
+  return posts;
+};
+export default {
+  create,
+  get,
+  remove,
+  likeUnlike,
+  reply,
+  getFeed,
+  getUserPosts,
+};

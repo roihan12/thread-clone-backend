@@ -91,6 +91,22 @@ const getFeedPosts = async (req, res, next) => {
   }
 };
 
+const getUserPosts = async (req, res, next) => {
+  const { username } = req.params;
+  try {
+   
+
+    const result = await postService.getUserPosts(username);
+    res.status(200).json({
+      status: "success",
+      message: "Get user posts successfully",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   createPost,
   getPost,
@@ -98,4 +114,5 @@ export {
   likeUnlikePost,
   replyToPost,
   getFeedPosts,
+  getUserPosts,
 };

@@ -9,6 +9,9 @@ import { validate } from "../validation/validation.js";
 import User from "../model/userModel.js";
 import { ResponseError } from "../error/responseError.js";
 import bcrypt from "bcryptjs";
+import { v2 as cloudinary } from "cloudinary";
+import mongoose from "mongoose";
+import Post from "../model/postModel.js";
 
 const signup = async (request) => {
   const user = validate(signupUserValidation, request);
@@ -104,7 +107,19 @@ const followUnfollowUser = async (request) => {
   }
 };
 
-const update = async (request) => {
+const update = async (updateUser, request) => {
+  if (request.profilePic) {
+    if (updateUser.profilePic) {
+      await cloudinary.uploader.destroy(
+        updateUser.profilePic.split("/").pop().split(".")[0]
+      );
+    }
+    const uploadedResponse = await cloudinary.uploader.upload(
+      request.profilePic
+    );
+    request.profilePic = uploadedResponse.secure_url;
+  }
+
   const user = validate(updateUserValidation, request);
 
   let currentUser = await User.findById(user.userId);
@@ -127,15 +142,41 @@ const update = async (request) => {
 
   currentUser = await currentUser.save();
 
+  // Find all posts that this user replied and update username and userProfilePic fields
+
+  await Post.updateMany(
+    {
+      "replies.userId": user.userId,
+    },
+    {
+      $set: {
+        "replies.$[reply].username": currentUser.username,
+        "replies.$[reply].userProfilePic": currentUser.profilePic,
+      },
+    },
+    {
+      arrayFilters: [{ "reply.userId": user.userId }],
+    }
+  );
+
+  currentUser.password = null;
   return currentUser;
 };
 
-const getProfile = async (username) => {
-  username = validate(getProfileValidation, username);
+const getProfile = async (query) => {
+  query = validate(getProfileValidation, query);
 
-  const user = await User.findOne({ username })
-    .select("-password")
-    .select("-updatedAt");
+  let user;
+  if (mongoose.Types.ObjectId.isValid(query)) {
+    user = await User.findOne({ _id: query })
+      .select("-password")
+      .select("-updatedAt");
+  } else {
+    user = await User.findOne({ username: query })
+      .select("-password")
+      .select("-updatedAt");
+  }
+
   if (!user) {
     throw new ResponseError(400, "error", "User not found");
   }

@@ -16,10 +16,10 @@ const newdate = `${date.getDate()}-${date.getMonth()}-${date.getFullYear()}`;
 const options = {
   info: {
     level: "info",
-    dirname: "logs/combibned",
+    dirname: "logs/combined",
     json: true,
     handleExceptions: true,
-    maxSize: "10",
+    maxSize: "20",
     filename: `combined-${newdate}.log`,
     datePattern: "YYYY-MM-DD-HH",
   },
@@ -43,6 +43,14 @@ const options = {
     handleExceptions: true,
     colorize: true,
   },
+  // New transporter for request logs
+  request: {
+    level: "info",
+    dirname: "logs/request",
+    json: true,
+    handleExceptions: true,
+    filename: `request-${newdate}.log`,
+  },
 };
 
 export const logger = new createLogger({
@@ -52,6 +60,14 @@ export const logger = new createLogger({
     new transports.File(options.error),
     new MongoDB(options.dbinfo),
     new transports.Console(options.console),
+    // Add the new request transporter
+    new transports.File(options.request),
   ],
   exitOnError: false,
 });
+
+// Contoh penggunaan logger:
+// logger.info("Ini adalah pesan info");
+// logger.error("Ini adalah pesan error");
+// logger.debug("Ini adalah pesan debug");
+// logger.log("request", "Ini adalah pesan request");

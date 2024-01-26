@@ -16,9 +16,9 @@ const updateUserValidation = Joi.object({
   username: Joi.string().max(100).optional(),
   userId: Joi.string().max(100).required(),
   email: Joi.string().max(100).optional(),
-  password: Joi.string().max(100).optional(),
+  password: Joi.optional(),
   name: Joi.string().max(100).optional(),
-  profilePic: Joi.string().max(250).optional(),
+  profilePic: Joi.string().optional(),
   bio: Joi.string().max(250).optional(),
 });
 
