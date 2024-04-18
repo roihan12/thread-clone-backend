@@ -9,8 +9,14 @@ import User from "../model/userModel.js";
 import Conversation from "../model/conversationModel.js";
 import Message from "../model/messageModel.js";
 import { getRecipientSocketId, io } from "../socket/socket.js";
+import { v2 as cloudinary } from "cloudinary";
 
 const sendMessage = async (user, request) => {
+  if (request.img) {
+    const uploadedResponse = await cloudinary.uploader.upload(request.img);
+    request.img = uploadedResponse.secure_url;
+  }
+
   const newConversation = validate(sendMessageValidation, request);
 
   if (user._id === newConversation.recipientId) {
@@ -37,6 +43,7 @@ const sendMessage = async (user, request) => {
     conversationId: conversation._id,
     sender: user._id,
     text: newConversation.message,
+    img: newConversation.img || "",
   });
 
   await Promise.all([

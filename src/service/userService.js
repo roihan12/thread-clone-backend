@@ -57,6 +57,11 @@ const login = async (request) => {
     throw new ResponseError(400, "error", "Invalid username or password");
   }
 
+  if (checkUserExists.isFrozen) {
+    checkUserExists.isFrozen = false;
+    await checkUserExists.save();
+  }
+
   // Query the user after saving to exclude the password field
   return await User.findById(checkUserExists._id).select("-password");
 };
@@ -184,4 +189,68 @@ const getProfile = async (query) => {
   return user;
 };
 
-export default { signup, login, followUnfollowUser, update, getProfile };
+const getSuggested = async (user) => {
+  // Exclude the current user from suggested users and exclude users that the current user is already following
+  const userId = user._id;
+
+  const usersFollowedByYou = await User.findById(userId).select("following");
+
+  if (!usersFollowedByYou) {
+    throw new ResponseError(400, "error", "User not found");
+  }
+
+  const users = await User.aggregate([
+    {
+      $match: {
+        _id: { $ne: userId },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        username: 1,
+        email: 1,
+        profilePic: 1,
+        followers: 1,
+        following: 1,
+        bio: 1,
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    },
+    {
+      $sample: { size: 10 },
+    },
+  ]);
+
+  const filteredUsers = users.filter(
+    (user) => !usersFollowedByYou.following.includes(user._id)
+  );
+  const suggestedUsers = filteredUsers.slice(0, 4);
+  // suggestedUsers.forEach((user) => (user.password = null));
+  return suggestedUsers;
+};
+
+const freeze = async (user) => {
+  const currentUser = await User.findById(user._id);
+
+  if (!currentUser) {
+    throw new ResponseError(400, "error", "User not found");
+  }
+
+  currentUser.isFrozen = true;
+  await currentUser.save();
+  const message = "Freeze account successfully";
+  return message;
+};
+
+export default {
+  signup,
+  login,
+  followUnfollowUser,
+  update,
+  getProfile,
+  getSuggested,
+  freeze,
+};

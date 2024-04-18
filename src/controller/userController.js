@@ -84,9 +84,8 @@ const updateUser = async (req, res, next) => {
 
 const getUserProfile = async (req, res, next) => {
   try {
-
     // fecth user profile either with username or userid
-    
+
     const { query } = req.params;
 
     const result = await userService.getProfile(query);
@@ -101,6 +100,38 @@ const getUserProfile = async (req, res, next) => {
   }
 };
 
+const getSuggestedUsers = async (req, res, next) => {
+  try {
+    // fecth user profile either with username or userid
+    const user = req.user;
+    const result = await userService.getSuggested(user);
+
+    res.status(200).json({
+      status: "success",
+      message: "Get Suggested successfully",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const freezeAccount = async (req, res, next) => {
+  const user = req.user;
+
+  try {
+    const result = await userService.freeze(user);
+
+    res.status(200).json({
+      status: "success",
+      message: result,
+      data: null,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   signupUser,
   loginUser,
@@ -108,4 +139,6 @@ export {
   followUnfollowUser,
   updateUser,
   getUserProfile,
+  getSuggestedUsers,
+  freezeAccount,
 };
