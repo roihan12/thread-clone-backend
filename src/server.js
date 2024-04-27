@@ -11,7 +11,7 @@ import connectDB from "./application/database.js";
 import { v2 as cloudinary } from "cloudinary";
 import bodyParser from "body-parser";
 import { web, server } from "./socket/socket.js";
-
+import cors from "cors";
 dotenv.config();
 
 // Database Connection
@@ -32,6 +32,13 @@ web.use(
     parameterLimit: 50000,
   })
 );
+
+const corsOptions = {
+  origin: "*",
+  credentials: true, //access-control-allow-credentials:true
+};
+
+web.use(cors(corsOptions));
 
 // Middleware
 web.use(express.json());
