@@ -10,7 +10,8 @@ const web = express();
 const server = http.createServer(web);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin:
+      "https://thread-clone-frontend-7b849xy83-roihan12s-projects.vercel.app",
     methods: ["GET", "POST"],
   },
 });
@@ -34,7 +35,10 @@ io.on("connection", (socket) => {
         { conversationId: conversationId, seen: false },
         { $set: { seen: true } }
       );
-      await Conversation.updateOne({_id: conversationId}, { $set: { "lastMessage.seen": true }})
+      await Conversation.updateOne(
+        { _id: conversationId },
+        { $set: { "lastMessage.seen": true } }
+      );
       io.to(userSocketMap[userId]).emit("messagesSeen", { conversationId });
     } catch (error) {
       logger.error(error);
