@@ -4,14 +4,14 @@ import express from "express";
 import { logger } from "../application/logger.js";
 import Message from "../model/messageModel.js";
 import Conversation from "../model/conversationModel.js";
-
+import dotenv from "dotenv";
+dotenv.config();
 const web = express();
 
 const server = http.createServer(web);
 const io = new Server(server, {
   cors: {
-    origin:
-      "https://thread-clone-frontend-7b849xy83-roihan12s-projects.vercel.app",
+    origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST"],
   },
 });

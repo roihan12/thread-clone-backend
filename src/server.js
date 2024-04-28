@@ -34,8 +34,7 @@ web.use(
 );
 
 const corsOptions = {
-  origin:
-    "https://thread-clone-frontend-7b849xy83-roihan12s-projects.vercel.app",
+  origin: process.env.FRONTEND_URL,
   credentials: true, //access-control-allow-credentials:true
 };
 
